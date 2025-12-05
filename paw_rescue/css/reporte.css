@@ -1,0 +1,38 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fafafa;
+  color: #333;
+}
+
+.navbar {
+  border-bottom: 1px solid #ddd;
+}
+
+h2 {
+  font-weight: bold;
+  color: #222;
+}
+
+#lista-reportes .card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out;
+}
+
+#lista-reportes .card:hover {
+  transform: translateY(-5px);
+}
+
+.modal-content {
+  border-radius: 15px;
+}
+
+footer {
+  text-align: center;
+  padding: 15px;
+  background: #f8f9fa;
+  font-size: 14px;
+  color: #333;
+  border-top-width: 15cm;
+}

@@ -1,0 +1,56 @@
+body {
+  background-color: #f8f9fa;
+  font-family: Arial, sans-serif;
+}
+
+.donaciones-header {
+  text-align: center;
+  margin: 50px 0 30px 0;
+}
+
+.donaciones-header h1 {
+  font-weight: bold;
+}
+
+.donacion-card {
+  border-radius: 15px;
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out;
+}
+
+.donacion-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-donar {
+  background-color: #000;
+  color: #fff;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.btn-donar:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+/* Modal */
+.modal-content {
+  border-radius: 15px;
+}
+.modal-header {
+  border-bottom: none;
+}
+.modal-body form label {
+  font-weight: bold;
+}
+ footer {
+  background-color: #000;
+  color: #fff;
+  text-align: center;
+  padding: 20px 0;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adopcion</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+   <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="index.html">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616409.png" alt="logo" width="30" class="me-2">
+      Paw Rescue
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="info.html">Acerca de</a></li>
+        
+        <!-- Dropdown de Adoptar -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="adoptar.html" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Adoptar
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="adoptar.html">Ver mascotas</a></li>
+            <li><a class="dropdown-item" href="cuestionario.html">Cuestionario</a></li>
+            <li><a class="dropdown-item" href="prueba.html">Prueba de adopción</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item"><a class="nav-link" href="donar.html">Donaciones</a></li>
+        <li class="nav-item"><a class="nav-link" href="reporte.html">Reportar</a></li>
+        <li class="nav-item"><a class="nav-link" href="contacto.html">Contacto</a></li>
+      </ul>
+      <a href="login.html" class="btn btn-outline-dark ms-3">Login</a>
+    </div>
+  </div>
+</nav>
+
+  <!-- Hero Section -->
+  <section class="aviso">
+    <div>
+      <h2>Proceso de Adopcion</h2>
+    </div>
+    <div>
+      <h4>Aquí encontrarás a todos los peluditos que están en proceso de formar parte de una familia.</h4>
+    </div>
+  </section>
+
+  <!-- Título -->
+  <h3 class="fw-bold mb-4">Personas</h3>
+
+  <div class="row g-4">
+
+      <!-- Tarjeta 1 -->
+      <div class="col-md-3">
+        <div class="card h-100 shadow-sm">
+          <img src="../img/adoptador1.jpeg" class="card-img-top" alt="Perro en adopción">
+          <div class="card-body text-start">
+            <p><b>Nombre:</b> Luna</p>
+            <p>Luna esta feliz de formar parte de esta familia</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 2 -->
+      <div class="col-md-3">
+        <div class="card h-100 shadow-sm">
+          <img src="../img/adoptador1.jpeg" class="card-img-top" alt="Perro en adopción">
+          <div class="card-body text-start">
+            <p><b>Nombre:</b> Luna</p>
+            <p>Luna esta feliz de formar parte de esta familia</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 3 -->
+      <div class="col-md-3">
+        <div class="card h-100 shadow-sm">
+          <img src="../img/adoptador1.jpeg" class="card-img-top" alt="Perro en adopción">
+          <div class="card-body text-start">
+            <p><b>Nombre:</b> Luna</p>
+            <p>Luna esta feliz de formar parte de esta familia</p>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Tarjeta 4 -->
+      <div class="col-md-3">
+        <div class="card h-100 shadow-sm">
+          <img src="../img/adoptador1.jpeg" class="card-img-top" alt="Perro en adopción">
+          <div class="card-body text-start">
+            <p><b>Nombre:</b> Luna</p>
+            <p>Luna esta feliz de formar parte de esta familia</p>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+</section>
+
+
+
+
+
+  <!-- pie pagina -->
+  <footer>
+    MURASAKI 2026. ©
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Script -->
+  <script src="script.js"></script>
+</body>
+</html>

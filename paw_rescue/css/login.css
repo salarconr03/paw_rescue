@@ -1,0 +1,61 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.principal{
+    width: 100vw;
+    padding: 5%;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#env{
+    width: 100%;
+}
+
+.formulario{
+    flex: 9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-direction: column;
+}
+
+.formulario form{
+    width: 50%;
+}
+
+.contc{
+    flex: 1;
+    color:#FFBD59;
+    font-family: 'Inter', sans-serif;
+    font-size: 7vh;
+    font-weight: 900;
+}
+
+.extra{
+    display: flex;
+    flex-direction: row;
+    width: 50%;
+    margin-top: 20px;
+}
+
+.text{
+    font-family: 'Body Link', sans-serif;
+    text-decoration: underline;
+    color: #000;
+}
+
+#margen{
+    margin-right: 50%;
+}

@@ -1,0 +1,53 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.principal{
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    padding: 5%;
+    flex: 1;
+}
+
+.formulario{
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+form{
+    width: 100%;
+}
+
+.div_tel{
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-right: 15%;
+}
+
+.contc{
+    color:#FFBD59;
+    font-family: 'Inter', sans-serif;
+    font-size: 3vw;
+    font-weight: 900;
+    margin-bottom: 15%;
+}
+
+#env{
+    width: 100%;
+}
+
+#tel{
+    height: 50%;
+}

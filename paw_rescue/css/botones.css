@@ -1,0 +1,18 @@
+.botones{
+    display: flex;
+    flex-direction: row;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.boton{
+    flex: 1;
+}
+
+.btn_editar{
+    margin-right: 5px;
+}
+
+.btn_eliminar{
+    margin-left: 5px;
+}
