@@ -20,7 +20,7 @@
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg bg-white shadow-sm">
             <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">
+            <a class="navbar-brand fw-bold" href="index.php">
                 <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="logo" width="30" class="me-2">
                 Marca
             </a>
@@ -29,13 +29,13 @@
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="info.html">Peticiones</a></li>
-                <li class="nav-item"><a class="nav-link" href="adoptar.html">Reportes</a></li>
-                <li class="nav-item"><a class="nav-link" href="agregar_mascota.html">Agregar mascotas</a></li>
-                <li class="nav-item"><a class="nav-link" href="reporte.html">Reportar</a></li>
-                <li class="nav-item"><a class="nav-link" href="adoptar.html">Catalogo</a></li>
+                <li class="nav-item"><a class="nav-link" href="info.php">Peticiones</a></li>
+                <li class="nav-item"><a class="nav-link" href="adoptar.php">Reportes</a></li>
+                <li class="nav-item"><a class="nav-link" href="agregar_mascota.php">Agregar mascotas</a></li>
+                <li class="nav-item"><a class="nav-link" href="reporte.php">Reportar</a></li>
+                <li class="nav-item"><a class="nav-link" href="adoptar.php">Catalogo</a></li>
                 </ul>
-                <a href="login.html" class="btn btn-outline-dark ms-3">Login</a>
+                <a href="login.php" class="btn btn-outline-dark ms-3">Login</a>
             </div>
             </div>
         </nav>
