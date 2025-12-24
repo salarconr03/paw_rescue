@@ -1,9 +1,9 @@
 <?php
-$host = "localhost";
+$host = "127.0.0.1";
 $usuario = "root";
 $password = "";
 $bd = "paw_rescue";
-
+$puerto = 3306
 
 $conexion = new mysqli($host, $usuario, $password, $bd);
 

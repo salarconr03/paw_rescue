@@ -1,9 +1,9 @@
 <?php
-include("paw_rescue/conexion.php");
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-if ($conexion) {
-    echo "✅ Conexión exitosa a la base de datos";
-} else {
-    echo "❌ No hay conexión con la base de datos";
+try {
+    $conexion = new mysqli("localhost", "root", "", "paw_rescue", 3306);
+    echo "CONECTADO CORRECTAMENTE";
+} catch (mysqli_sql_exception $e) {
+    echo "ERROR REAL: " . $e->getMessage();
 }
-?>
