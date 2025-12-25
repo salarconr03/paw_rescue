@@ -79,7 +79,7 @@
 <div class="row g-4">
   <!-- tarjeta 1 -->
   <div class="col-md-3">
-    <a href="razas/huskies.html" class="text-decoration-none text-dark">
+    <a href="razas/huskies.php" class="text-decoration-none text-dark">
       <div class="card shadow-sm h-100">
         <img src="../img/husky.jpeg" class="card-img-top" alt="Husky">
         <div class="card-body">

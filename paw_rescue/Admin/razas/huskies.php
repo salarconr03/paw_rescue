@@ -59,7 +59,10 @@
             <p><b>Talla:</b> Mediana</p>
             <p><b>Sexo:</b> Hembra</p>
             <p><b>Esterilizado y vacunado</b></p>
-            <button class="btn btn-dark w-100">Ver más</button>
+            <a href="ficha_mascota.php?id=1" class="btn btn-dark w-100">
+            Ficha mascota</a>
+
+           
             <div class="botones">
               <button type="button" class="btn btn-primary boton btn_editar">Editar</button>
               <button type="button" class="btn btn-danger boton btn_eliminar">Eliminar</button>
@@ -78,7 +81,7 @@
             <p><b>Talla:</b> Grande</p>
             <p><b>Sexo:</b> Macho</p>
             <p><b>Esterilizado y vacunado</b></p>
-            <button class="btn btn-dark w-100">Ver más</button>
+           <button href="ficha_mascota.php" class="btn btn-dark w-100">ficha mascota</button>
             <div class="botones">
               <button type="button" class="btn btn-primary boton btn_editar">Editar</button>
               <button type="button" class="btn btn-danger boton btn_eliminar">Eliminar</button>
@@ -97,7 +100,7 @@
             <p><b>Talla:</b> Mediana</p>
             <p><b>Sexo:</b> Hembra</p>
             <p><b>Esterilizado y vacunado</b></p>
-            <button class="btn btn-dark w-100">Ver más</button>
+          <button href="ficha_mascota.php" class="btn btn-dark w-100">ficha mascota</button>
             <div class="botones">
               <button type="button" class="btn btn-primary boton btn_editar">Editar</button>
               <button type="button" class="btn btn-danger boton btn_eliminar">Eliminar</button>
@@ -116,7 +119,7 @@
             <p><b>Talla:</b> Grande</p>
             <p><b>Sexo:</b> Macho</p>
             <p><b>Esterilizado y vacunado</b></p>
-            <button class="btn btn-dark w-100">Ver más</button>
+            <button href="ficha_mascota.php" class="btn btn-dark w-100">ficha mascota</button>
             <div class="botones">
               <button type="button" class="btn btn-primary boton btn_editar">Editar</button>
               <button type="button" class="btn btn-danger boton btn_eliminar">Eliminar</button>
