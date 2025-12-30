@@ -2,11 +2,11 @@
 include("../../paw_rescue/conexion.php");
 
 /* ================= FILTROS ================= */
-$where = " WHERE ea.descripcion = 'Disponible' ";
+$where = " WHERE ea.nombre = 'Disponible' ";
 
 if (!empty($_GET['especie'])) {
   $esp = pg_escape_string($conexion, $_GET['especie']);
-  $where .= " AND ta.nombre = '$esp'";
+  $where .= " AND e.nombre = '$esp'";
 }
 
 if (!empty($_GET['raza'])) {
@@ -15,50 +15,51 @@ if (!empty($_GET['raza'])) {
 }
 
 if (!empty($_GET['tamanio'])) {
-  $where .= " AND tm.idtamanio = " . (int)$_GET['tamanio'];
+  $where .= " AND t.id_tam = " . (int)$_GET['tamanio'];
 }
 
 if (!empty($_GET['color'])) {
-  $where .= " AND c.idcolor = " . (int)$_GET['color'];
+  $where .= " AND c.id_color = " . (int)$_GET['color'];
 }
 
 if (!empty($_GET['temperamento'])) {
-  $where .= " AND at.idtemperamento = " . (int)$_GET['temperamento'];
+  $where .= " AND a.id_temp = " . (int)$_GET['temperamento'];
 }
 
 /* ================= QUERY BASE ================= */
 function obtenerMascotas($conexion, $extra = "") {
   $sql = "
   SELECT DISTINCT
-    a.idanimal,
+    a.id_animal,
     a.nombre,
-    a.edad,
-    a.imagen,
-    ta.nombre AS especie,
+    a.edad_aprox,
+    img.url AS imagen,
+    e.nombre AS especie,
     r.nombre AS raza,
-    tm.descripcion AS tamanio,
+    t.nombre AS tamanio,
     c.nombre AS color,
-    ea.descripcion AS estado,
-    da.nivel AS demanda,
+    ea.nombre AS estado,
     CASE 
       WHEN EXISTS (
-        SELECT 1 FROM animal_vacuna av WHERE av.idanimal = a.idanimal
+        SELECT 1 FROM paw_rescue.hist_vac hv 
+        WHERE hv.id_animal = a.id_animal
       ) THEN 'Sí'
       ELSE 'No'
     END AS vacunado
-  FROM animal a
-  JOIN tipo_animal ta ON a.idtipo = ta.idtipo
-  JOIN raza r ON a.idraza = r.idraza
-  JOIN tamanio tm ON a.idtamanio = tm.idtamanio
-  JOIN color c ON a.idcolor = c.idcolor
-  JOIN estado_animal ea ON a.idestado = ea.idestado
-  JOIN demanda_atencion da ON a.iddemanda = da.iddemanda
-  LEFT JOIN animal_temperamento at ON a.idanimal = at.idanimal
+  FROM paw_rescue.animal a
+  JOIN paw_rescue.especie e ON a.id_esp = e.id_esp
+  JOIN paw_rescue.raza r ON a.id_raza = r.id_raza
+  JOIN paw_rescue.tam t ON a.id_tam = t.id_tam
+  JOIN paw_rescue.color c ON a.id_color = c.id_color
+  JOIN paw_rescue.estado_animal ea ON a.id_estado = ea.id_estado
+  LEFT JOIN paw_rescue.img_animal_principal img 
+       ON img.id_animal = a.id_animal
   $extra
-  ORDER BY a.idanimal
+  ORDER BY a.id_animal
   ";
   return pg_query($conexion, $sql);
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -117,10 +118,10 @@ function obtenerMascotas($conexion, $extra = "") {
   </div>
 
   <div class="col-md-2">
-    <select name="tamanio" class="form-select">
+    <select name="tam" class="form-select">
       <option value="">Tamaño</option>
       <?php
-      $t = pg_query($conexion, "SELECT * FROM tamanio");
+      $t = pg_query($conexion, "SELECT id_tam, nombre FROM paw_rescue.tam");
       while ($row = pg_fetch_assoc($t))
         echo "<option value='{$row['idtamanio']}'>{$row['descripcion']}</option>";
       ?>
@@ -131,7 +132,7 @@ function obtenerMascotas($conexion, $extra = "") {
     <select name="color" class="form-select">
       <option value="">Color</option>
       <?php
-      $c = pg_query($conexion, "SELECT * FROM color");
+      $c = pg_query($conexion, "SELECT id_color, nombre FROM paw_rescue.color");
       while ($row = pg_fetch_assoc($c))
         echo "<option value='{$row['idcolor']}'>{$row['nombre']}</option>";
       ?>
@@ -142,8 +143,8 @@ function obtenerMascotas($conexion, $extra = "") {
   <select name="temperamento" class="form-select">
     <option value="">Temperamento</option>
     <?php
-    $tp = pg_query($conexion, "SELECT idtemperamento, descripcion FROM temperamento");
-    while ($row = pg_fetch_assoc($tp)) {
+   $temp = pg_query($conexion, "SELECT id_temp, nombre FROM paw_rescue.temperamento");
+    while ($row = pg_fetch_assoc($temp)) {
       echo "<option value='{$row['idtemperamento']}'>{$row['descripcion']}</option>";
     }
     ?>
@@ -172,8 +173,8 @@ while ($m = pg_fetch_assoc($result)) {
     <div class="card-body">
       <h5><?= $m['nombre'] ?></h5>
       <p class="mb-1"><b><?= $m['especie'] ?></b> · <?= $m['raza'] ?></p>
-      <p class="mb-1">Edad: <?= $m['edad'] ?> años</p>
-      <p class="mb-1">Tamaño: <?= $m['tamanio'] ?></p>
+      <p class="mb-1">Edad: <?= $m['edad_aprox'] ?> años</p>
+      <p class="mb-1">Tamaño: <?= $m['tam'] ?></p>
       <p class="mb-1">Color: <?= $m['color'] ?></p>
       <p class="mb-1">Vacunado: <?= $m['vacunado'] ?></p>
       <p class="mb-1">Atención: <?= $m['demanda'] ?></p>

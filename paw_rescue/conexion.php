@@ -10,6 +10,7 @@ if (!$conexion) {
 $result = pg_query($conexion, "SELECT current_database(), current_schema()");
 $row = pg_fetch_assoc($result);
 
+
 echo "BD: " . $row['current_database'] . "<br>";
 echo "SCHEMA: " . $row['current_schema'] . "<br>";
 ?>
