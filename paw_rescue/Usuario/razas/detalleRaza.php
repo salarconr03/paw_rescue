@@ -7,9 +7,9 @@ pg_query($conexion, "SET search_path TO paw_rescue");
    PARÁMETROS BASE
 ================================ */
 $id_raza = intval($_GET['id_raza'] ?? 0);
-$especie = $_GET['especie'] ?? '';
+$especie = pg_escape_string($_GET['especie'] ?? '');
 
-if ($id_raza == 0 || $especie == '') {
+if ($id_raza === 0 || $especie === '') {
     die("Parámetros inválidos");
 }
 
@@ -46,9 +46,9 @@ WHERE a.id_raza = $id_raza
 AND e.nombre ILIKE '$especie'
 ";
 
-if ($id_tam != '')  $sql .= " AND a.id_tam = $id_tam";
-if ($id_col != '')  $sql .= " AND a.id_color = $id_col";
-if ($id_temp != '') $sql .= " AND a.id_temp = $id_temp";
+if ($id_tam !== '')  $sql .= " AND a.id_tam = $id_tam";
+if ($id_col !== '')  $sql .= " AND a.id_color = $id_col";
+if ($id_temp !== '') $sql .= " AND a.id_temp = $id_temp";
 
 $sql .= " ORDER BY a.nombre";
 
@@ -70,27 +70,55 @@ $temps    = pg_query($conexion, "SELECT id_temp, nombre FROM temperamento ORDER 
 <title>Mascotas disponibles</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 
 <body>
-
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+ <!-- Navbar -->
+   <nav class="navbar navbar-expand-lg bg-white shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="<?= dirname($_SERVER['PHP_SELF'], 2) ?>/index.php">
-  🐾 Paw Rescue</a>
+    <a class="navbar-brand fw-bold" href="../index.php">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616409.png" width="30" class="me-2">
+      Paw Rescue
+    </a>
 
-    <a class="nav-link active ms-auto" href="<?= dirname($_SERVER['PHP_SELF'], 2) ?>/adoptar.php">
-     Adoptar</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="../info.php">Acerca de</a></li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            Adoptar
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="../adoptar.php">Ver mascotas</a></li>
+            <li><a class="dropdown-item" href="../cuestionario.php">Cuestionario</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item"><a class="nav-link" href="../donar.php">Donaciones</a></li>
+        <li class="nav-item"><a class="nav-link" href="../reporte.php">Reportar</a></li>
+        <li class="nav-item"><a class="nav-link" href="../contacto.php">Contacto</a></li>
+      </ul>
+
+      <a href="../login.php" class="btn btn-outline-dark ms-3">Login</a>
+    </div>
   </div>
 </nav>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
 
 <section class="container my-5">
 
 <h3 class="fw-bold mb-4">Mascotas disponibles</h3>
 
-<!-- ===============================
-     FILTROS
-================================ -->
+<!-- FILTROS -->
 <form method="GET" class="row g-3 mb-4">
 
   <input type="hidden" name="id_raza" value="<?= $id_raza ?>">
@@ -138,12 +166,10 @@ $temps    = pg_query($conexion, "SELECT id_temp, nombre FROM temperamento ORDER 
 
 </form>
 
-<!-- ===============================
-     GRID
-================================ -->
+<!-- GRID -->
 <div class="row g-4">
 
-<?php if (pg_num_rows($resultado) == 0): ?>
+<?php if (pg_num_rows($resultado) === 0): ?>
   <div class="col-12 text-center text-muted">
     No hay mascotas con los filtros seleccionados
   </div>
@@ -157,26 +183,23 @@ $temps    = pg_query($conexion, "SELECT id_temp, nombre FROM temperamento ORDER 
            class="card-img-top">
 
       <div class="card-body">
-        <p><b>Nombre:</b> <?= $a['nombre'] ?></p>
-        <p><b>Edad aproximada:</b> <?= $a['edad_aprox'] ?> años</p>
-        <p><b>Tamaño:</b> <?= $a['tamano'] ?></p>
-        <p><b>Color:</b> <?= $a['color'] ?></p>
-        <p><b>Temperamento:</b> <?= $a['temperamento'] ?></p>
+        <p><b>Nombre:</b> <?= htmlspecialchars($a['nombre']) ?></p>
+        <p><b>Edad:</b> <?= $a['edad_aprox'] ?> años</p>
+        <p><b>Tamaño:</b> <?= $a['tamano'] ?? 'No registrado' ?></p>
+        <p><b>Color:</b> <?= $a['color'] ?? 'No registrado' ?></p>
+        <p><b>Temperamento:</b> <?= $a['temperamento'] ?? 'No registrado' ?></p>
 
-        <span class="badge <?= ($a['estatus'] === 'Disponible') ? 'bg-success' : 'bg-danger' ?>">
+        <span class="badge <?= ($a['estatus'] === 'No adoptado') ? 'bg-success' : 'bg-danger' ?>">
           <?= $a['estatus'] ?>
         </span>
 
-        <!-- BOTONES -->
         <div class="d-grid gap-2 mt-3">
-          <a href="detalleMascota.php?id=<?= $a['id_animal'] ?>"
-             class="btn btn-outline-dark">
+          <a href="detalleMascota.php?id=<?= $a['id_animal'] ?>" class="btn btn-outline-dark">
             Ver más
           </a>
 
-          <?php if ($a['estatus'] === 'Disponible'): ?>
-            <a href="adoptarFormulario.php?id=<?= $a['id_animal'] ?>"
-               class="btn btn-dark">
+          <?php if ($a['estatus'] === 'No adoptado'): ?>
+            <a href="adoptarFormulario.php?id=<?= $a['id_animal'] ?>" class="btn btn-dark">
               Adoptar
             </a>
           <?php endif; ?>

@@ -94,8 +94,6 @@ if (!$result) {
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link" href="catalogo.php">Catálogo</a></li>
-        <li class="nav-item"><a class="nav-link" href="catalogo.php?especie=Perro">Perros</a></li>
-        <li class="nav-item"><a class="nav-link" href="catalogo.php?especie=Gato">Gatos</a></li>
       </ul>
     </div>
   </div>
