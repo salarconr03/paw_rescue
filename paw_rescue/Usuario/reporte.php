@@ -1,7 +1,9 @@
 <?php
 session_start();
-?>
+include("../conexion.php");
 
+$logueado = isset($_SESSION['id_usuario']);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -17,8 +19,8 @@ session_start();
 </head>
 <body>
 
-  <!-- Navbar -->
-       <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+<!-- ================= NAVBAR ================= -->
+          <nav class="navbar navbar-expand-lg bg-white shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="index.php">
       <img src="https://cdn-icons-png.flaticon.com/512/616/616409.png"
@@ -87,96 +89,159 @@ session_start();
       </div>
     </nav>
 
-  <!-- Sección Reportes -->
-  <section class="container my-5">
-    <h2 class="text-center mb-4">Reportes de Perros Extraviados o Abandonados</h2>
-    
-    <!-- Botón para abrir modal -->
-    <div class="text-center mb-5">
-      <button id="btn-reporte" class="btn btn-primary">
-         Reporte de mascota 
+<!-- ======================================================= -->
+
+<!-- ================= SECCIÓN REPORTES ================= -->
+<section class="container my-5">
+  <h2 class="text-center mb-4">Reportes de Perros Extraviados o Abandonados</h2>
+
+  <!-- Botón controlado por sesión -->
+  <div class="text-center mb-5">
+    <?php if ($logueado): ?>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReporte">
+        Reporte de mascota
       </button>
-    </div>
+    <?php else: ?>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalLogin">
+        Reporte de mascota
+      </button>
+    <?php endif; ?>
+  </div>
 
-    <!-- Lista de reportes estilo blog -->
-    <div id="lista-reportes">
-      <div class="card mb-4 shadow-sm">
-        <div class="row g-0">
-          <div class="col-md-4">
-            <img src="../img/perro.jpeg" class="img-fluid rounded-start" alt="Perro perdido">
-          </div>
-          <div class="col-md-8">
-            <div class="card-body">
-              <h5 class="card-title">Perro extraviado</h5>
-              <p class="card-text">Se vio este perrito de tamaño mediano, color marrón, cerca del metro.</p>
-              <p class="text-muted">📍 Ubicación: Azcapotzalco</p>
-            </div>
-          </div>
+  <div id="lista-reportes">
+<?php
+$sql = "
+SELECT nombre, descripcion, ubicacion, foto, fecha
+FROM paw_rescue.reporte_animal
+ORDER BY fecha DESC
+";
+
+$resultado = pg_query($conexion, $sql);
+
+while ($row = pg_fetch_assoc($resultado)):
+?>
+  <div class="card mb-4 shadow-sm">
+    <div class="row g-0">
+
+      <div class="col-md-4">
+        <?php if (!empty($row['foto'])): ?>
+          <img src="../imgReportes/<?= htmlspecialchars($row['foto']) ?>"
+               class="img-fluid rounded-start"
+               alt="Reporte de perro">
+        <?php else: ?>
+          <img src="../img/perro.jpeg"
+               class="img-fluid rounded-start"
+               alt="Sin imagen">
+        <?php endif; ?>
+      </div>
+
+      <div class="col-md-8">
+        <div class="card-body">
+          <h5 class="card-title">
+            <?= $row['nombre'] ?: 'Perro sin nombre' ?>
+          </h5>
+
+          <p class="card-text">
+            <?= nl2br(htmlspecialchars($row['descripcion'])) ?>
+          </p>
+
+          <p class="text-muted">
+            📍 Ubicación: <?= htmlspecialchars($row['ubicacion']) ?>
+          </p>
+
+          <p class="text-muted">
+            🕒 Fecha de reporte: <?= date("d/m/Y H:i", strtotime($row['fecha'])) ?>
+          </p>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- Modal Reporte -->
-  <div class="modal fade" id="modalReporte" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Reportar Perro</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="form-reporte">
-            <div class="mb-3">
-              <label for="nombrePet" class="form-label">Nombre (si se conoce)</label>
-              <input type="text" id="nombrePet" class="form-control">
-            </div>
-            <div class="mb-3">
-              <label for="descripcion" class="form-label">Descripción</label>
-              <textarea id="descripcion" class="form-control" rows="3"></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="ubicacion" class="form-label">Ubicación vista</label>
-              <input type="text" id="ubicacion" class="form-control">
-            </div>
-              <div class="mb-3">
-              <label for="herida" class="form-label">Describir si tiene heridas </label>
-              <input type="text" id="herida "class="form-control">
-            </div>
-            <div class="mb-3">
-              <label for="foto" class="form-label">Subir foto</label>
-              <input type="file" id="foto" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-success">Publicar</button>
-          </form>
-        </div>
+    </div>
+  </div>
+<?php endwhile; ?>
+</div>
+
+</section>
+
+<!-- ================= MODAL REPORTE ================= -->
+<div class="modal fade" id="modalReporte" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reportar Perro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form action="guardarReporte.php" method="POST" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label">Nombre (si se conoce)</label>
+            <input type="text" name="nombre" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Situación</label>
+            <select name="situacion" class="form-select" required>
+              <option value="">Selecciona</option>
+              <option value="calle">En la calle</option>
+              <option value="abandono">Abandono</option>
+              <option value="maltrato">Maltrato</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">¿Está herido?</label>
+            <select name="herido" class="form-select" required>
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Descripción de heridas</label>
+            <textarea name="descripcion_heridas" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Descripción general</label>
+            <textarea name="descripcion" class="form-control" rows="3" required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Ubicación</label>
+            <input type="text" name="ubicacion" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Foto</label>
+            <input type="file" name="foto" class="form-control">
+          </div>
+
+          <button type="submit" class="btn btn-success w-100">Publicar</button>
+        </form>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Modal Login/Regristro -->
-  <div class="modal fade" id="modalLogin" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content text-center p-4">
-        <h5 class="mb-3">🔒 Debes iniciar sesión</h5>
-        <p>Para poder reportar un perro, primero debes estar registrado.</p>
-        <a href="login.html" class="btn btn-primary w-100 mb-2">Iniciar sesión</a>
-        <a href="registro.html" class="btn btn-outline-secondary w-100">Registrarse</a>
-      </div>
+<!-- ================= MODAL LOGIN ================= -->
+<div class="modal fade" id="modalLogin" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center p-4">
+      <h5 class="mb-3">Debes iniciar sesión</h5>
+      <p>Para poder reportar un perro, primero debes estar registrado.</p>
+      <a href="login.php" class="btn btn-primary w-100 mb-2">Iniciar sesión</a>
+      <a href="registro.php" class="btn btn-outline-secondary w-100">Registrarse</a>
     </div>
   </div>
+</div>
 
-  <!-- Pie de página -->
-  <footer class="text-center py-3 bg-light">
-    MURASAKI 2026. ©
-  </footer>
+<!-- ================= FOOTER ================= -->
+<footer class="text-center py-3 bg-light">
+  MURASAKI 2026. ©
+</footer>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Script -->
- 
-  <script src="../js/reporte.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
