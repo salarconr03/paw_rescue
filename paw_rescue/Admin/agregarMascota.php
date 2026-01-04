@@ -2,6 +2,15 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+$adminLogueado = false;
+$nombreAdmin   = '';
+
+if (isset($_SESSION['admin_id'])) {
+    $adminLogueado = true;
+    $nombreAdmin   = $_SESSION['admin_nombre'] ?? 'Admin';
+}
+
+
 session_start();
 include(__DIR__ . "/../conexion.php");
 pg_query($conexion, "SET search_path TO paw_rescue");
@@ -48,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $nombreFoto = time() . "_" . uniqid() . "." . $ext;
 
         move_uploaded_file($_FILES["foto"]["tmp_name"], $carpeta . $nombreFoto);
-        $rutaBD = "Admin/imgMascotas/" . $nombreFoto;
+        $rutaBD = "/paw_rescue/Admin/imgMascotas/" . $nombreFoto;
     }
 
     /* ===== INSERT ANIMAL ===== */
@@ -124,11 +133,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <body class="bg-light">
 
-<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="index.php">🐾 Paw Rescue</a>
+    <a class="navbar-brand fw-bold" href="index.php">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="logo" width="30" class="me-2">
+      Paw Rescue
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+
+        <?php if ($adminLogueado): ?>
+          <li class="nav-item"><a class="nav-link" href="info.php">Peticiones</a></li>
+          <li class="nav-item"><a class="nav-link" href="adoptar.php">Reportes</a></li>
+          <li class="nav-item"><a class="nav-link" href="agregarMascota.php">Agregar mascotas</a></li>
+          <li class="nav-item"><a class="nav-link" href="reporte.php">Reportar</a></li>
+          <li class="nav-item"><a class="nav-link" href="catalogo.php">Catálogo</a></li>
+        <?php endif; ?>
+
+      </ul>
+
+      <?php if ($adminLogueado): ?>
+        <span class="me-3 fw-semibold">
+          admin: <?= htmlspecialchars($nombreAdmin) ?>
+        </span>
+        <a href="logoutAdmin.php" class="btn btn-outline-danger">
+          Cerrar sesión
+        </a>
+      <?php else: ?>
+        <a href="login.php" class="btn btn-outline-dark ms-3">
+          Login
+        </a>
+      <?php endif; ?>
+
+    </div>
   </div>
 </nav>
+
 
 <div class="container mt-5">
 <div class="card shadow p-4">
@@ -143,15 +188,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <input class="form-control" name="nombre" placeholder="Nombre de la mascota" required>
 
-<select name="id_esp" class="form-select" required>
+
+<select name="id_esp" id="especie" class="form-select" required>
   <option value="">Especie</option>
-  <?php while($e=pg_fetch_assoc($especies)) echo "<option value='{$e['id_esp']}'>{$e['nombre']}</option>"; ?>
+  <?php
+  while ($e = pg_fetch_assoc($especies)) {
+      echo "<option value='{$e['id_esp']}'>{$e['nombre']}</option>";
+  }
+  ?>
 </select>
 
-<select name="id_raza" class="form-select">
-  <option value="">Raza (si se conoce)</option>
-  <?php while($r=pg_fetch_assoc($razas)) echo "<option value='{$r['id_raza']}'>{$r['nombre']}</option>"; ?>
+<select name="id_raza" id="raza" class="form-select">
+  <option value="">Raza (selecciona una especie)</option>
 </select>
+
+
+
 
 <select name="id_tam" class="form-select" required>
   <option value="">Tamaño</option>

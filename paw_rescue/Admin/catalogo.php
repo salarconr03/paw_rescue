@@ -42,7 +42,7 @@ SELECT DISTINCT
     c.nombre AS color,
     temp.nombre AS temperamento,
     ea.nombre AS estado,
-    COALESCE(img.url, 'https://via.placeholder.com/300') AS imagen,
+    COALESCE(a.foto, 'https://via.placeholder.com/300') AS imagen,
     CASE 
         WHEN EXISTS (
             SELECT 1 
@@ -58,9 +58,9 @@ LEFT JOIN paw_rescue.tam t ON a.id_tam = t.id_tam
 LEFT JOIN paw_rescue.color c ON a.id_color = c.id_color
 LEFT JOIN paw_rescue.temperamento temp ON a.id_temp = temp.id_temp
 JOIN paw_rescue.estado_animal ea ON a.id_estado = ea.id_estado
-LEFT JOIN paw_rescue.img_animal_principal img ON img.id_animal = a.id_animal
 $where
-ORDER BY a.id_animal
+ORDER BY a.id_animal;
+
 ";
 
 $result = pg_query($conexion, $sql);
@@ -85,7 +85,10 @@ if (!$result) {
 ================================ -->
 <nav class="navbar navbar-expand-lg bg-white shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="index.php">Paw Rescue</a>
+    <a class="navbar-brand fw-bold" href="index.php">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="logo" width="30" class="me-2">
+      Paw Rescue
+    </a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
@@ -93,8 +96,37 @@ if (!$result) {
 
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
       <ul class="navbar-nav">
-        <li class="nav-item"><a class="nav-link" href="catalogo.php">Catálogo</a></li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="info.php">Peticiones</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="adoptar.php">Reportes</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="agregarMascota.php">Agregar mascotas</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="reporte.php">Reportar</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="catalogo.php">Catálogo</a>
+        </li>
+
       </ul>
+
+      <span class="me-3 fw-semibold">
+        admin: <?= htmlspecialchars($nombreAdmin) ?>
+      </span>
+
+      <a href="logoutAdmin.php" class="btn btn-outline-danger">
+        Cerrar sesión
+      </a>
+
     </div>
   </div>
 </nav>

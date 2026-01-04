@@ -2,8 +2,14 @@
 session_start();
 
 /* ===== VALIDAR ADMIN ===== */
-$adminLogueado = isset($_SESSION["admin_login"]) && $_SESSION["admin_login"] === true;
-$nombreAdmin  = $_SESSION["admin_nombre"] ?? '';
+$adminLogueado = isset($_SESSION['admin_id']);
+$nombreAdmin   = $_SESSION['admin_nombre'] ?? '';
+
+/* ===== PROTEGER PÁGINA ===== */
+if (!$adminLogueado) {
+    header("Location: login.php");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -35,28 +41,35 @@ $nombreAdmin  = $_SESSION["admin_nombre"] ?? '';
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
       <ul class="navbar-nav">
 
-        <?php if ($adminLogueado): ?>
-          <li class="nav-item"><a class="nav-link" href="info.php">Peticiones</a></li>
-          <li class="nav-item"><a class="nav-link" href="adoptar.php">Reportes</a></li>
-          <li class="nav-item"><a class="nav-link" href="agregarMascota.php">Agregar mascotas</a></li>
-          <li class="nav-item"><a class="nav-link" href="reporte.php">Reportar</a></li>
-          <li class="nav-item"><a class="nav-link" href="catalogo.php">Catálogo</a></li>
-        <?php endif; ?>
+        <li class="nav-item">
+          <a class="nav-link" href="info.php">Peticiones</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="adoptar.php">Reportes</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="agregarMascota.php">Agregar mascotas</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="reporte.php">Reportar</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="catalogo.php">Catálogo</a>
+        </li>
 
       </ul>
 
-      <?php if ($adminLogueado): ?>
-        <span class="me-3 fw-semibold">
-          admin: <?= htmlspecialchars($nombreAdmin) ?>
-        </span>
-        <a href="logoutAdmin.php" class="btn btn-outline-danger">
-          Cerrar sesión
-        </a>
-      <?php else: ?>
-        <a href="login.php" class="btn btn-outline-dark ms-3">
-          Login
-        </a>
-      <?php endif; ?>
+      <span class="me-3 fw-semibold">
+        admin: <?= htmlspecialchars($nombreAdmin) ?>
+      </span>
+
+      <a href="logoutAdmin.php" class="btn btn-outline-danger">
+        Cerrar sesión
+      </a>
 
     </div>
   </div>
@@ -66,7 +79,7 @@ $nombreAdmin  = $_SESSION["admin_nombre"] ?? '';
 <section class="hero text-center p-5">
   <h1>
     Bienvenido<br>
-    <?= $adminLogueado ? htmlspecialchars($nombreAdmin) : 'Administrador' ?>
+    <?= htmlspecialchars($nombreAdmin) ?>
   </h1>
 </section>
 
