@@ -31,7 +31,7 @@ SELECT
     ia.codigo,
 
     re.lugar,
-    re.condiciones,
+    re.fecha AS fecha_rescate,
 
     ea2.nombre AS estatus_adopcion
 
@@ -45,19 +45,23 @@ LEFT JOIN salud_actual sa ON sa.id_animal = a.id_animal
 LEFT JOIN ident_animal ia ON ia.id_animal = a.id_animal
 LEFT JOIN rescate re ON re.id_animal = a.id_animal
 LEFT JOIN estatus_adop ea2 ON a.id_estatus = ea2.id_estatus
-WHERE a.id_animal = $id
+WHERE a.id_animal = $1
 LIMIT 1
 ";
 
-$res = pg_query($conexion, $sql);
+$res = pg_query_params($conexion, $sql, [$id]);
+
 if (!$res || pg_num_rows($res) === 0) {
     die("Mascota no encontrada");
 }
+
 $m = pg_fetch_assoc($res);
 
-/* ========= NORMALIZAR ========= */
+/* ========= NORMALIZAR BOOLEANOS ========= */
 $enfermo = ($m['enfermo'] === 't');
 $requiere_cuidados = ($m['necesidades_especiales'] === 't');
+$tuvo_duenos = ($m['tuvo_duenos_anteriores'] === 't');
+$tiene_id = ($m['tiene_id'] === 't');
 ?>
 
 <!DOCTYPE html>
@@ -70,146 +74,101 @@ $requiere_cuidados = ($m['necesidades_especiales'] === 't');
 
 <body class="bg-light">
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg bg-white shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="index.php">
-      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="logo" width="30" class="me-2">
-      Paw Rescue
-    </a>
+<?php include("navbar.php"); ?>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+<div class="container my-4">
+<div class="card shadow p-4">
 
-    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-      <ul class="navbar-nav">
+<h3 class="mb-4">Expediente de <?= htmlspecialchars($m['nombre']) ?></h3>
 
-        <li class="nav-item">
-          <a class="nav-link" href="info.php">Peticiones</a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" href="adoptar.php">Reportes</a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" href="agregarMascota.php">Agregar mascotas</a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" href="reporte.php">Reportar</a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" href="catalogo.php">Catálogo</a>
-        </li>
-
-      </ul>
-
-      <span class="me-3 fw-semibold">
-        admin: <?= htmlspecialchars($nombreAdmin) ?>
-      </span>
-
-      <a href="logoutAdmin.php" class="btn btn-outline-danger">
-        Cerrar sesión
-      </a>
-
-    </div>
-  </div>
-</nav>
-
-
-<!-- ========= DATOS PERSONALES ========= -->
-<h4>Datos personales</h4>
+<!-- ========= DATOS GENERALES ========= -->
+<h5>Datos generales</h5>
 <ul>
-  <li><b>Nombre:</b> <?= $m['nombre'] ?></li>
-  <li><b>Especie:</b> <?= $m['especie'] ?></li>
-  <li><b>Raza:</b> <?= $m['raza'] ?: 'No especificada' ?></li>
-  <li><b>Tamaño:</b> <?= $m['tam'] ?></li>
-  <li><b>Color:</b> <?= $m['color'] ?></li>
-  <li><b>Edad aproximada:</b> <?= $m['edad_aprox'] ?> años</li>
-  <li><b>Estado actual:</b> <?= $m['estado'] ?></li>
+  <li><b>Especie:</b> <?= htmlspecialchars($m['especie']) ?></li>
+  <li><b>Raza:</b> <?= $m['raza'] ? htmlspecialchars($m['raza']) : 'No especificada' ?></li>
+  <li><b>Tamaño:</b> <?= htmlspecialchars($m['tam']) ?></li>
+  <li><b>Color:</b> <?= htmlspecialchars($m['color']) ?></li>
+  <li><b>Edad aproximada:</b> <?= $m['edad_aprox'] ?? 'No registrada' ?> años</li>
+  <li><b>Estado actual:</b> <?= htmlspecialchars($m['estado']) ?></li>
+</ul>
+
+<hr>
+
+<!-- ========= ORIGEN ========= -->
+<h5>Origen</h5>
+<p>
+<?= $tuvo_duenos ? 'Retirada a una persona' : 'Rescate en la calle' ?>
+</p>
+
+<hr>
+
+<!-- ========= RESCATE ========= -->
+<h5>Rescate</h5>
+<ul>
+  <li><b>Día de rescate:</b> <?= $m['fecha_rescate'] ?: 'No registrado' ?></li>
+  <li><b>Lugar:</b> <?= htmlspecialchars($m['lugar']) ?: 'No registrado' ?></li>
 </ul>
 
 <hr>
 
 <!-- ========= CUIDADOS ESPECIALES ========= -->
-<h4>Cuidados especiales</h4>
+<h5>Cuidados especiales</h5>
 <ul>
 <?php if (!$requiere_cuidados): ?>
     <li>No requiere cuidados especiales</li>
 <?php else: ?>
-
 <?php
-$cuidados = pg_query($conexion, "
+$cuidados = pg_query_params($conexion, "
     SELECT tc.nombre, ace.observaciones
     FROM animal_cuidado_especial ace
     JOIN tipo_cuidado_especial tc ON ace.id_cuidado = tc.id_cuidado
-    WHERE ace.id_animal = $id
-");
+    WHERE ace.id_animal = $1
+", [$id]);
 
 if (pg_num_rows($cuidados) === 0) {
-    echo "<li>Requiere cuidados especiales (sin detalle registrado)</li>";
+    echo "<li>Requiere cuidados especiales (sin detalle)</li>";
 }
 
 while ($c = pg_fetch_assoc($cuidados)) {
-    echo "<li><b>{$c['nombre']}:</b> {$c['observaciones']}</li>";
+    echo "<li><b>" . htmlspecialchars($c['nombre']) . ":</b> " .
+         htmlspecialchars($c['observaciones']) . "</li>";
 }
 ?>
-
 <?php endif; ?>
 </ul>
 
 <hr>
 
-<!-- ========= DUEÑOS ANTERIORES ========= -->
-<h4>Dueños anteriores</h4>
-<p><?= $m['tuvo_duenos_anteriores'] ?: 'No registrado' ?></p>
-
-<hr>
-
-<!-- ========= RESCATE ========= -->
-<h4>Situación del rescate</h4>
-<ul>
-  <li><b>Lugar:</b> <?= $m['lugar'] ?: 'No registrado' ?></li>
-  <li><b>Condiciones:</b> <?= $m['condiciones'] ?: 'Sin información' ?></li>
-</ul>
-
-<hr>
-
-<!-- ========= ADOPCIÓN ========= -->
-<h4>Adopción</h4>
-<p><b>Estatus:</b> <?= $m['estatus_adopcion'] ?: 'No adoptado' ?></p>
-
-<hr>
-
 <!-- ========= SALUD ========= -->
-<h4>Salud</h4>
+<h5>Salud</h5>
 <ul>
-  <li><b>Estado:</b> <?= is_null($m['enfermo']) ? 'No registrado' : ($enfermo ? 'Enfermo' : 'Sano') ?></li>
-  <li><b>Diagnóstico:</b> <?= $m['diagnostico'] ?: 'No aplica' ?></li>
-  <li><b>Observaciones:</b> <?= $m['obs_salud'] ?: 'Sin observaciones' ?></li>
+  <li><b>Estado:</b>
+    <?= is_null($m['enfermo']) ? 'No registrado' : ($enfermo ? 'Enfermo' : 'Sano') ?>
+  </li>
+  <li><b>Diagnóstico:</b> <?= htmlspecialchars($m['diagnostico']) ?: 'No aplica' ?></li>
+  <li><b>Observaciones:</b> <?= htmlspecialchars($m['obs_salud']) ?: 'Sin observaciones' ?></li>
 </ul>
 
 <hr>
 
 <!-- ========= ENFERMEDADES ========= -->
-<h4>Enfermedades</h4>
+<h5>Enfermedades</h5>
 <ul>
 <?php
-$enf = pg_query($conexion, "
-SELECT e.nombre, ea.fecha
-FROM enf_animal ea
-JOIN enfermedad e ON ea.id_enf = e.id_enf
-WHERE ea.id_animal = $id
-");
+$enf = pg_query_params($conexion, "
+    SELECT e.nombre, ea.fecha
+    FROM enf_animal ea
+    JOIN enfermedad e ON ea.id_enf = e.id_enf
+    WHERE ea.id_animal = $1
+", [$id]);
 
 if (pg_num_rows($enf) === 0) {
     echo "<li>No registra enfermedades</li>";
 }
+
 while ($row = pg_fetch_assoc($enf)) {
-    echo "<li>{$row['nombre']} ({$row['fecha']})</li>";
+    echo "<li>" . htmlspecialchars($row['nombre']) .
+         " (" . $row['fecha'] . ")</li>";
 }
 ?>
 </ul>
@@ -217,21 +176,23 @@ while ($row = pg_fetch_assoc($enf)) {
 <hr>
 
 <!-- ========= VACUNAS ========= -->
-<h4>Vacunas y desparasitación</h4>
+<h5>Vacunas</h5>
 <ul>
 <?php
-$vac = pg_query($conexion, "
-SELECT v.nombre, hv.fecha_ap
-FROM hist_vac hv
-JOIN vacuna v ON hv.id_vac = v.id_vac
-WHERE hv.id_animal = $id
-");
+$vac = pg_query_params($conexion, "
+    SELECT v.nombre, hv.fecha_ap
+    FROM hist_vac hv
+    JOIN vacuna v ON hv.id_vac = v.id_vac
+    WHERE hv.id_animal = $1
+", [$id]);
 
 if (pg_num_rows($vac) === 0) {
     echo "<li>No hay registros</li>";
 }
+
 while ($v = pg_fetch_assoc($vac)) {
-    echo "<li>{$v['nombre']} ({$v['fecha_ap']})</li>";
+    echo "<li>" . htmlspecialchars($v['nombre']) .
+         " (" . $v['fecha_ap'] . ")</li>";
 }
 ?>
 </ul>
@@ -239,14 +200,15 @@ while ($v = pg_fetch_assoc($vac)) {
 <hr>
 
 <!-- ========= IDENTIFICACIÓN ========= -->
-<h4>Identificación</h4>
+<h5>Identificación</h5>
 <ul>
-  <li><b>Chip:</b> <?= is_null($m['tiene_id']) ? 'No registrado' : ($m['tiene_id'] ? 'Sí' : 'No') ?></li>
-  <?php if ($m['tiene_id']) { ?>
+  <li><b>Chip:</b> <?= is_null($m['tiene_id']) ? 'No registrado' : ($tiene_id ? 'Sí' : 'No') ?></li>
+  <?php if ($tiene_id): ?>
     <li><b>Código:</b> <?= htmlspecialchars($m['codigo']) ?></li>
-  <?php } ?>
+  <?php endif; ?>
 </ul>
 
+</div>
 </div>
 
 <footer class="text-center py-3 bg-white shadow-sm">

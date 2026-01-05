@@ -1,4 +1,5 @@
 <?php
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -6,6 +7,9 @@ include(__DIR__ . "/../conexion.php");
 pg_query($conexion, "SET search_path TO paw_rescue");
 
 $mensaje = "";
+
+
+
 
 /* ================= CATÁLOGOS ================= */
 $especies = pg_query($conexion, "SELECT id_esp, nombre FROM especie ORDER BY nombre");
@@ -18,21 +22,33 @@ $estados  = pg_query($conexion, "SELECT id_estado, nombre FROM estado_animal ORD
 $refugios = pg_query($conexion, "SELECT id_ref, nombre FROM refugio ORDER BY nombre");
 
 /* ================= REGISTRO ================= */
+
+$idUsuario     = $_SESSION['id_usuario'] ?? null;
+$codigoPostal  = null;
+$asentamiento  = null;
+$municipio     = null;
+
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $origen = $_POST['origen'] ?? 'calle';
-    $tuvo_duenos = ($origen === 'retiro') ? 't' : 'f'; // PostgreSQL-safe
+    $origen = $_POST['origen'];
+    $tuvo_duenos = ($origen === 'retiro') ? 't' : 'f';
+    $idUsuario = $_SESSION['id_usuario'] ?? null;
+    $codigoPostal = $_POST['codigo_postal'] ?? null;
+    $asentamiento = $_POST['asentamiento_id'] ?? null;
+    $municipio    = $_POST['municipio_final'] ?? $_POST['municipio_manual'] ?? null;
+
 
     pg_query($conexion, "BEGIN");
 
     try {
+
         /* ==== FOTO ==== */
         $rutaBD = null;
         if (!empty($_FILES["foto"]["name"])) {
+
             $carpeta = __DIR__ . "/imgMascotas/";
-            if (!is_dir($carpeta)) {
-                mkdir($carpeta, 0777, true);
-            }
+            if (!is_dir($carpeta)) mkdir($carpeta, 0777, true);
 
             $ext = pathinfo($_FILES["foto"]["name"], PATHINFO_EXTENSION);
             $nombreFoto = time() . "_" . uniqid() . "." . $ext;
@@ -66,40 +82,37 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $_POST['id_estado'],
             $_POST['id_ref'],
             $_POST['edad_aprox'] ?: null,
-            $tuvo_duenos,   // 't' o 'f'
+            $tuvo_duenos,
             $rutaBD
         ]);
 
-        if (!$resAnimal) {
-            throw new Exception(pg_last_error($conexion));
-        }
-
-        $animal = pg_fetch_assoc($resAnimal);
-        $idAnimal = $animal['id_animal'];
+        $idAnimal = pg_fetch_result($resAnimal, 0, 'id_animal');
 
         /* ==== RESCATE ==== */
         pg_query_params($conexion, "
-            INSERT INTO rescate (id_animal, fecha, lugar, condiciones)
-            VALUES ($1,$2,$3,$4)
+        INSERT INTO rescate (
+            id_animal,
+            fecha,
+            lugar,
+            id_usuario,
+            codigo_postal,
+            asentamiento_id,
+            municipio
+        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7)
         ", [
-            $idAnimal,
-            $_POST['fecha_rescate'],
-            $_POST['lugar_rescate'],
-            $_POST['condiciones'] ?: null
+        $idAnimal,
+        $_POST['fecha_rescate'],
+        $_POST['lugar_rescate'],
+        $idUsuario,
+        $codigoPostal,
+        $asentamiento,
+        $municipio
         ]);
 
-        /* ==== HISTORIAL ESTADO ==== */
-        pg_query_params($conexion, "
-        INSERT INTO rescate (id_animal, fecha, lugar)
-        VALUES ($1,$2,$3)", 
-        [
-          $idAnimal,
-          $_POST['fecha_rescate'],
-          $_POST['lugar_rescate']
-          ]);
 
 
-        /* ==== LISTA NEGRA (OPCIONAL) ==== */
+        /* ==== LISTA NEGRA ==== */
         if ($origen === 'retiro' && !empty($_POST['ln_curp'])) {
 
             $resPersona = pg_query_params($conexion, "
@@ -108,35 +121,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 VALUES ($1,$2,$3,$4,$5)
                 RETURNING id_persona
             ", [
-                $_POST['ln_nombre'] ?: null,
-                $_POST['ln_apellido1'] ?: null,
-                $_POST['ln_apellido2'] ?: null,
+                $_POST['ln_nombre'],
+                $_POST['ln_apellido1'],
+                $_POST['ln_apellido2'],
                 $_POST['ln_curp'],
                 $_POST['ln_motivo'] ?: 'Retiro de mascota'
             ]);
 
-            if (!$resPersona) {
-                throw new Exception(pg_last_error($conexion));
-            }
-
-            $persona = pg_fetch_assoc($resPersona);
+            $idPersona = pg_fetch_result($resPersona, 0, 'id_persona');
 
             pg_query_params($conexion, "
                 INSERT INTO retiro_mascota (id_animal, id_persona, motivo)
                 VALUES ($1,$2,$3)
             ", [
                 $idAnimal,
-                $persona['id_persona'],
+                $idPersona,
                 $_POST['ln_motivo'] ?: 'Retiro de mascota'
             ]);
         }
 
         pg_query($conexion, "COMMIT");
-        $mensaje = "Mascota registrada correctamente";
+        $mensaje = "✅ Mascota registrada correctamente";
 
     } catch (Exception $e) {
         pg_query($conexion, "ROLLBACK");
-        $mensaje = "Error: " . $e->getMessage();
+        $mensaje = "❌ Error: " . $e->getMessage();
     }
 }
 ?>
@@ -213,6 +222,54 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <?php while ($r = pg_fetch_assoc($refugios)) echo "<option value='{$r['id_ref']}'>{$r['nombre']}</option>"; ?>
 </select>
 
+<!-- MUNICIPIO MANUAL -->
+<select name="municipio_manual" id="municipio_manual" class="form-select">
+  <option value="">Selecciona alcaldía (si no sabes el CP)</option>
+  <option>Álvaro Obregón</option>
+  <option>Azcapotzalco</option>
+  <option>Benito Juárez</option>
+  <option>Coyoacán</option>
+  <option>Cuajimalpa</option>
+  <option>Cuauhtémoc</option>
+  <option>Gustavo A. Madero</option>
+  <option>Iztacalco</option>
+  <option>Iztapalapa</option>
+  <option>Magdalena Contreras</option>
+  <option>Miguel Hidalgo</option>
+  <option>Milpa Alta</option>
+  <option>Tláhuac</option>
+  <option>Tlalpan</option>
+  <option>Venustiano Carranza</option>
+  <option>Xochimilco</option>
+</select>
+
+<!-- CODIGO POSTAL -->
+<input
+  type="text"
+  id="codigo_postal"
+  name="codigo_postal"
+  class="form-control mt-2"
+  placeholder="Código Postal (opcional)"
+  maxlength="5"
+>
+
+<!-- COLONIA -->
+<select
+  name="asentamiento_id"
+  id="asentamiento"
+  class="form-select mt-2"
+>
+  <option value="">Colonia</option>
+</select>
+
+<!-- MUNICIPIO FINAL (OCULTO) -->
+<input type="text" name="municipio_final" id="municipio_final" class="form-control" readonly>
+
+
+
+
+
+
 <select name="origen" id="origen" class="form-select" required>
 <option value="">Origen</option>
 <option value="calle">Rescate en la calle</option>
@@ -239,5 +296,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </div>
 
 <script src="/paw_rescue/js/agregar_mascota.js"></script>
+<script src="/paw_rescue/js/codigo_postal.js"></script>
+
 </body>
 </html>
