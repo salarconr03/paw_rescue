@@ -70,19 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <body class="bg-light">
 
 <!-- ================= NAVBAR ================= -->
-<nav class="navbar navbar-expand-lg bg-white shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="index.php">
-      <img src="https://cdn-icons-png.flaticon.com/512/616/616409.png"
-           alt="logo" width="30" class="me-2">
-      Paw Rescue
-    </a>
+<?php include 'navbar.php'; ?>
 
-    <div class="collapse navbar-collapse justify-content-end">
-      <a href="login.php" class="btn btn-outline-dark">Login</a>
-    </div>
-  </div>
-</nav>
 
 <!-- ================= LOGIN ================= -->
 <div class="container mt-5">

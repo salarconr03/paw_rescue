@@ -1,178 +1,236 @@
 <?php
 session_start();
+include("../conexion.php");
 
-/* ========= PROTECCIÓN =========
-   Solo usuarios logueados */
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: login.php");
+    exit;
+}
+
+$id_usuario = $_SESSION['id_usuario'];
+
+$sql = "SELECT 1 FROM paw_rescue.cuestionario_adopcion WHERE id_usuario = $1";
+$res = pg_query_params($conexion, $sql, [$id_usuario]);
+
+if (pg_num_rows($res) > 0) {
+    header("Location: cuestionarioEnviado.php");
     exit;
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Cuestionario de Adopción</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="../css/style.css">
+<meta charset="UTF-8">
+<title>Cuestionario de Adopción</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
+<?php include 'navbar.php'; ?>
 
-<!-- NAVBAR (RESPETADO) -->
-<nav class="navbar navbar-expand-lg bg-white shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="index.php">
-      🐾 Paw Rescue
-    </a>
-
-    <div class="collapse navbar-collapse justify-content-end">
-      <a href="logout.php" class="btn btn-outline-danger">Cerrar sesión</a>
-    </div>
-  </div>
-</nav>
-
-<!-- CONTENIDO -->
 <section class="container my-5">
-    <h2 class="text-center mb-3">📋 Cuestionario de Adopción</h2>
-    <p class="text-center mb-4">
-        Este cuestionario nos ayuda a evaluar si el hogar es adecuado para una mascota.
-    </p>
 
-    <form action="guardar_cuestionario.php" method="POST" class="shadow p-4 rounded bg-light">
+<form method="POST" action="/paw_rescue/Usuario/guardarCuestionario.php">
 
-        <!-- CURP -->
-        <h5>Identificación</h5>
-        <div class="mb-3">
-            <label class="form-label">CURP</label>
-            <input type="text" name="curp" class="form-control" maxlength="18" required>
-        </div>
+<!-- ================= IDENTIFICACIÓN ================= -->
+<h5 class="mb-3">Identificación</h5>
+<div class="mb-4">
+  <input type="text" name="curp" class="form-control"
+         placeholder="CURP" required>
+</div>
 
-        <!-- VIVIENDA -->
-        <h5 class="mt-4">Vivienda</h5>
+<!-- ================= DOMICILIO ================= -->
+<h5 class="mt-4 mb-3">Domicilio</h5>
 
-        <div class="mb-3">
-            <label class="form-label">Tipo de vivienda</label>
-            <select name="tipo_vivienda" class="form-select" required>
-                <option value="">Selecciona</option>
-                <option value="1">Casa</option>
-                <option value="2">Departamento</option>
-                <option value="3">Otro</option>
-            </select>
-        </div>
+<div class="row">
+  <div class="col-md-3 mb-3">
+    <label class="form-label">Código Postal</label>
+    <input type="text" id="codigo_postal" name="codigo_postal"
+           class="form-control" maxlength="5">
+  </div>
 
-        <div class="mb-3">
-            <label class="form-label">¿La vivienda es rentada?</label>
-            <select name="permiso_renta" class="form-select">
-                <option value="">No aplica</option>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
+  <div class="col-md-4 mb-3">
+    <label class="form-label">Municipio</label>
+    <input type="text" id="municipio_final" name="municipio_final"
+           class="form-control" readonly>
+  </div>
 
-        <div class="mb-3">
-            <label class="form-label">¿Cuenta con comprobante de domicilio?</label>
-            <select name="comprobante_domicilio" class="form-select" required>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
+  <div class="col-md-5 mb-3">
+    <label class="form-label">Colonia</label>
+    <select id="asentamiento" name="asentamiento_id" class="form-select">
+      <option value="">Selecciona colonia</option>
+    </select>
+  </div>
+</div>
 
-        <div class="mb-3">
-            <label class="form-label">¿Cuenta con espacio adecuado para la mascota?</label>
-            <select name="espacio_adecuado" class="form-select" required>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
+<div class="mb-4">
+  <label class="form-label">Calle y número</label>
+  <input type="text" name="calle" class="form-control" required>
+</div>
 
-        <div class="mb-3">
-            <label class="form-label">¿La vivienda tiene protecciones (bardas, rejas)?</label>
-            <select name="protecciones" class="form-select" required>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
+<!-- ================= ECONOMÍA ================= -->
+<h5 class="mt-4 mb-3">Situación Económica</h5>
+<select name="ingresos" class="form-select mb-4" required>
+  <option value="">Ingreso mensual</option>
+  <option value="1">Menos de $6,000</option>
+  <option value="2">$6,000 – $10,000</option>
+  <option value="3">$10,000 – $20,000</option>
+  <option value="4">Más de $20,000</option>
+</select>
 
-        <div class="mb-3">
-            <label class="form-label">¿Hay niños en el hogar?</label>
-            <select name="convivencia_ninos" class="form-select" required>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
 
-        <!-- COMPROMISO -->
-        <h5 class="mt-4">Compromiso</h5>
+<!-- ================= TIEMPO ================= -->
+<h5 class="mt-4 mb-3">Tiempo Disponible</h5>
+<select name="tiempo_dedicado" class="form-select mb-4" required>
+  <option value="">Tiempo diario para la mascota</option>
+  <option value="1">Menos de 1 hora</option>
+  <option value="2">1 a 3 horas</option>
+  <option value="3">Más de 3 horas</option>
+</select>
 
-        <div class="mb-3">
-            <label class="form-label">¿Acepta visitas de supervisión?</label>
-            <select name="acepta_visitas" class="form-select" required>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
 
-        <div class="mb-3">
-            <label class="form-label">¿Acepta la esterilización?</label>
-            <select name="acepta_esterilizacion" class="form-select" required>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
+<!-- ================= PERSONALIDAD ================= -->
+<h5 class="mt-4 mb-3">Personalidad</h5>
+<select name="personalidad" class="form-select mb-4" required>
+  <option value="">Describe tu personalidad</option>
+  <option value="Tranquila">Tranquila</option>
+  <option value="Activa">Activa</option>
+  <option value="Muy activa">Muy activa</option>
+</select>
 
-        <div class="mb-3">
-            <label class="form-label">¿Compromiso a largo plazo (10–15 años)?</label>
-            <select name="compromiso_largo_plazo" class="form-select" required>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
+<!-- ================= MOTIVO ================= -->
+<h5 class="mt-4 mb-3">Motivo para Adoptar</h5>
+<textarea name="motivo_adopcion" class="form-control mb-4"
+          rows="4" placeholder="Explique por qué desea adoptar" required></textarea>
 
-        <div class="mb-3">
-            <label class="form-label">¿Puede cubrir gastos veterinarios?</label>
-            <select name="gastos_veterinarios" class="form-select" required>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-            </select>
-        </div>
+<!-- ================= CONVIVENCIA ================= -->
+<h5 class="mt-4 mb-3">Convivencia en el Hogar</h5>
 
-        <!-- MOTIVO -->
-        <h5 class="mt-4">Motivo de adopción</h5>
-        <div class="mb-3">
-            <select name="motivo" class="form-select">
-                <option value="">Selecciona</option>
-                <option value="1">Compañía</option>
-                <option value="2">Cuidado familiar</option>
-                <option value="3">Protección</option>
-                <option value="4">Otro</option>
-            </select>
-        </div>
+<div class="mb-3">
+  <?php
+  $opciones = ['Adultos','Niños','Adultos mayores','Otras mascotas'];
+  foreach ($opciones as $o):
+  ?>
+  <div class="form-check">
+    <input class="form-check-input"
+           type="checkbox"
+           name="convivientes[]"
+           value="<?= $o ?>">
+    <label class="form-check-label"><?= $o ?></label>
+  </div>
+  <?php endforeach; ?>
+</div>
 
-        <!-- OBSERVACIONES -->
-        <div class="mb-3">
-            <label class="form-label">Observaciones</label>
-            <textarea name="observaciones" class="form-control" rows="3"></textarea>
-        </div>
+<select name="total_personas" class="form-select mb-3" required>
+  <option value="">Número total de personas</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4 o más</option>
+</select>
 
-        <!-- BOTÓN -->
-        <div class="text-center">
-            <button type="submit" class="btn btn-success px-5">
-                Enviar cuestionario
-            </button>
-        </div>
 
-    </form>
+<select name="acuerdo_familiar" class="form-select mb-4" required>
+  <option value="">¿Todos están de acuerdo?</option>
+  <option value="Si">Sí</option>
+  <option value="No">No</option>
+  <option value="Parcial">Parcial</option>
+</select>
+
+<!-- ================= EXPERIENCIA ================= -->
+<h5 class="mt-4 mb-3">Experiencia con Mascotas</h5>
+
+<select name="experiencia_previa" class="form-select mb-3" required>
+  <option value="">¿Ha tenido mascotas?</option>
+  <option value="Si">Sí</option>
+  <option value="No">No</option>
+</select>
+
+<select name="destino_mascota" class="form-select mb-4">
+  <option value="">¿Qué pasó con su última mascota?</option>
+  <option value="Vive conmigo">Vive conmigo</option>
+  <option value="Falleció">Falleció</option>
+  <option value="Se perdió">Se perdió</option>
+  <option value="Reubicada">Fue reubicada</option>
+</select>
+
+<!-- ================= RUTINA ================= -->
+<h5 class="mt-4 mb-3">Rutina</h5>
+
+<select name="cuidador" class="form-select mb-3" required>
+  <option value="">¿Quién será el responsable principal?</option>
+  <option value="Yo">Yo</option>
+  <option value="Familiar">Familiar</option>
+  <option value="Vecino">Vecino</option>
+</select>
+
+<select name="frecuencia_viajes" class="form-select mb-4" required>
+  <option value="">Frecuencia de viajes</option>
+  <option value="Casi nunca">Casi nunca</option>
+  <option value="1-2 al año">1–2 veces al año</option>
+  <option value="Frecuente">Varias veces al año</option>
+</select>
+
+<!-- ================= RESPONSABILIDAD ================= -->
+<h5 class="mt-4 mb-3">Responsabilidad</h5>
+
+<select name="conoce_costos" class="form-select mb-3" required>
+  <option value="">¿Conoce los costos veterinarios?</option>
+  <option value="Si">Sí</option>
+  <option value="No">No</option>
+</select>
+
+<select name="gasto_mensual" class="form-select mb-3" required>
+  <option value="">Gasto mensual estimado</option>
+  <option value="Menos de 500">Menos de $500</option>
+  <option value="500-1000">$500 – $1000</option>
+  <option value="1000-2000">$1000 – $2000</option>
+  <option value="2000+">Más de $2000</option>
+</select>
+
+<select name="respuesta_enfermedad" class="form-select mb-3" required>
+  <option value="">Si la mascota enferma…</option>
+  <option value="Veterinario">La llevaría al veterinario</option>
+  <option value="Evaluar costos">Evaluaría los costos</option>
+</select>
+
+<select name="respuesta_danos" class="form-select mb-4" required>
+  <option value="">Si daña objetos…</option>
+  <option value="Adiestramiento">Buscaría adiestramiento</option>
+  <option value="Corregir">Intentaría corregir</option>
+</select>
+
+<select name="acepta_contrato" class="form-select mb-4" required>
+  <option value="">¿Acepta firmar contrato?</option>
+  <option value="Si">Sí</option>
+  <option value="No">No</option>
+</select>
+
+<!-- ================= PREVENCIÓN ================= -->
+<h5 class="mt-4 mb-3">Prevención y Compromiso</h5>
+
+<textarea name="plan_emergencia" class="form-control mb-3"
+          rows="3"
+          placeholder="¿Qué haría en una emergencia?" required></textarea>
+
+<textarea name="plan_largo_plazo" class="form-control mb-4"
+          rows="4"
+          placeholder="Plan a largo plazo para la mascota" required></textarea>
+
+<button type="submit"
+        name="enviar_cuestionario"
+        class="btn btn-success px-5">
+  Enviar cuestionario
+</button>
+
+</form>
 </section>
 
 <footer class="text-center py-3 bg-light">
-    MURASAKI 2026 ©
+MURASAKI © 2026
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/paw_rescue/js/cpUsuario.js"></script>
 </body>
 </html>
