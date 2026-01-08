@@ -1,14 +1,17 @@
 -- ================================================================
 -- PROYECTO: paw_rescue (PostgreSQL)
+-- SCRIPT COMPLETO Y UNIFICADO
 -- ================================================================
-PERMISOS PARA MOVER Y SUBIR IMAGENES A CARPETAS (LINUX)
 
-sudo chown -R daemon:daemon /Applications/XAMPP/xamppfiles/htdocs/paw_rescue/imgReportes
-sudo chmod 755 /Applications/XAMPP/xamppfiles/htdocs/paw_rescue/imgReportes
+-- ======================
+-- LIMPIEZA TOTAL
+-- ======================
+DROP SCHEMA IF EXISTS paw_rescue CASCADE;
+CREATE SCHEMA paw_rescue;
 
-
-CREATE SCHEMA IF NOT EXISTS paw_rescue;
-
+-- ======================
+-- PERMISOS
+-- ======================
 GRANT USAGE ON SCHEMA paw_rescue TO murasaki;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA paw_rescue TO murasaki;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA paw_rescue TO murasaki;
@@ -180,6 +183,8 @@ CREATE TABLE paw_rescue.refugio (
 -- ================================================================
 -- 5. ANIMALES
 -- ================================================================
+
+
 CREATE TABLE paw_rescue.animal (
     id_animal SERIAL PRIMARY KEY,
     nombre VARCHAR(120) NOT NULL,
@@ -193,10 +198,14 @@ CREATE TABLE paw_rescue.animal (
     id_estado INT REFERENCES paw_rescue.estado_animal(id_estado),
     id_ref INT REFERENCES paw_rescue.refugio(id_ref),
     edad_aprox SMALLINT CHECK (edad_aprox >= 0),
-    tuvo_duenos_anteriores BOOLEAN,
+    tuvo_duenos_anteriores BOOLEAN DEFAULT FALSE,
     necesidades_especiales BOOLEAN DEFAULT FALSE,
     fecha_reg TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    foto VARCHAR(255)
+    foto VARCHAR(255),
+    nivel_energia VARCHAR(50),      -- Bajo, Medio, Alto
+    requiere_tiempo VARCHAR(50),    -- Poco, Moderado, Mucho
+    gasto_estimado DECIMAL(10,2),   -- Costo mensual aproximado
+    tolera_ninos BOOLEAN DEFAULT TRUE
 );
 
 -- ================================================================
@@ -428,11 +437,9 @@ CREATE TABLE paw_rescue.tipo_cita (
 );
 
 INSERT INTO paw_rescue.tipo_cita (nombre) VALUES
-('Conocer a la mascota'),
-('Entrevista en persona'),
+('Entrevista y conocer a la mascota en persona'),
 ('Visita domiciliaria'),
-('Entrega de mascota');
-
+('Firmar adopcion');
 
 CREATE TABLE paw_rescue.estatus_cita (
     id_estatus SERIAL PRIMARY KEY,

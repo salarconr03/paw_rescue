@@ -2,53 +2,59 @@
 session_start();
 include("../conexion.php");
 
-/* ================== VALIDAR ADMIN ================== */
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+/* ================= VALIDAR ADMIN ================= */
 if (!isset($_SESSION['admin_id'])) {
-    header("Location: ../login.php");
-    exit;
+    die("Acceso no autorizado");
 }
 
-/* ================== VALIDAR POST ================== */
-if (!isset($_POST['id_solicitud'], $_POST['resultado'], $_POST['observaciones'])) {
+/* ================= VALIDAR POST ================= */
+if (
+    !isset($_POST['id_solicitud']) ||
+    !isset($_POST['resultado'])
+) {
     die("Datos incompletos");
 }
 
-$idSolicitud = (int)$_POST['id_solicitud'];
-$resultado = $_POST['resultado']; // apto / no_apto
-$observaciones = trim($_POST['observaciones']);
+$idSolicitud   = (int)$_POST['id_solicitud'];
+$resultado     = $_POST['resultado']; // apto / no_apto
+$observaciones = $_POST['observaciones'] ?? null;
 
-pg_query($conexion, "BEGIN");
+/*
+ESTATUS:
+5 = Periodo de prueba
+6 = Firma de adopción
+3 = No apto
+*/
 
+/* ================= DECISIÓN SIMPLE ================= */
 if ($resultado === 'apto') {
-    $nuevoEstatus = 6; // Aprobada (firma)
+    $nuevoEstatus = 6; // pasa a FIRMA
 } else {
-    $nuevoEstatus = 7; // Denegada
+    $nuevoEstatus = 3; // rechazado
 }
 
+/* ================= ACTUALIZAR SOLICITUD ================= */
 $sql = "
 UPDATE paw_rescue.solicitud_adopcion
 SET
     id_estatus = $1,
-    observaciones = $2,
-    aprobada = $3
-WHERE id_solicitud = $4
-AND id_estatus = 5
+    observaciones = $2
+WHERE id_solicitud = $3
 ";
 
 $res = pg_query_params($conexion, $sql, [
     $nuevoEstatus,
     $observaciones,
-    $resultado === 'apto',
     $idSolicitud
 ]);
 
 if (!$res) {
-    pg_query($conexion, "ROLLBACK");
-    die("Error al evaluar periodo de prueba");
+    die("Error al actualizar periodo de prueba");
 }
 
-pg_query($conexion, "COMMIT");
-
-/* ================== REDIRIGIR ================== */
+/* ================= REDIRECCIÓN ================= */
 header("Location: verSolicitud.php?id=".$idSolicitud);
 exit;
